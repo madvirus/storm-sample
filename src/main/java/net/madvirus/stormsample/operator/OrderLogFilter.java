@@ -3,13 +3,12 @@ package net.madvirus.stormsample.operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import storm.trident.operation.BaseOperation;
-import storm.trident.operation.Filter;
+import storm.trident.operation.BaseFilter;
 import storm.trident.tuple.TridentTuple;
 
-public class OrderLogFilter extends BaseOperation implements Filter {
-	private static final Logger LOG = LoggerFactory.getLogger(OrderLogFilter.class);
+public class OrderLogFilter extends BaseFilter {
 	private static final long serialVersionUID = 1L;
+	private static final Logger LOG = LoggerFactory.getLogger(OrderLogFilter.class);
 
 	@Override
 	public boolean isKeep(TridentTuple tuple) {
