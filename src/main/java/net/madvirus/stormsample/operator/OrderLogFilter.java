@@ -13,10 +13,10 @@ public class OrderLogFilter extends BaseFilter {
 	@Override
 	public boolean isKeep(TridentTuple tuple) {
 		String logString = (String) tuple.getValueByField("logString");
-		boolean orderLog = logString.startsWith("ORDER");
-		if (!orderLog)
+		boolean pass = logString.startsWith("ORDER");
+		if (!pass)
 			LOG.info("OrderLogFilter filtered out {}", logString);
-		return orderLog;
+		return pass;
 	}
 
 }

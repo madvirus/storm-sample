@@ -15,7 +15,7 @@ public class AddGroupingValueFunction extends BaseOperation implements Function 
 	public void execute(TridentTuple tuple, TridentCollector collector) {
 		ShopLog shopLog = (ShopLog) tuple.getValueByField("shopLog");
 		long time = shopLog.getTimestamp() / (1000L * 60L);
-		collector.emit(Arrays.<Object> asList(shopLog.getProductId() + ":" + time));
+		collector.emit(Arrays.<Object>asList(shopLog.getProductId() + ":" + time));
 	}
 
 }

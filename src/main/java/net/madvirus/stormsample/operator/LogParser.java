@@ -10,13 +10,13 @@ import storm.trident.operation.TridentCollector;
 import storm.trident.tuple.TridentTuple;
 
 public class LogParser extends BaseFunction {
-	private static final Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
 	private static final long serialVersionUID = 1L;
+	private static final Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
 	@Override
 	public void execute(TridentTuple tuple, TridentCollector collector) {
-		String log = (String) tuple.getValueByField("logString");
+		String log = tuple.getStringByField("logString");
 		ShopLog event = parseLog(log);
 		collector.emit(Arrays.<Object> asList(event));
 		LOG.info("LogParser emit tuple {}", event);
