@@ -25,11 +25,12 @@ public class LogTopology {
 				.groupBy(new Fields("productId:time"))
 				.aggregate(new Fields("productId:time"), new Count(), new Fields("count"))
 				.each(new Fields("productId:time", "count"), new CountSumFunction(), new Fields("sum"))
-				.each(new Fields("productId:time", "sum"), new ThresholdFilter(5L))
+				.each(new Fields("productId:time", "sum"), new ThresholdFilter())
 				.each(new Fields("productId:time", "sum"), new AlertFilter());
 		StormTopology stormTopology = topology.build();
 
 		Config conf = new Config();
+		conf.put("ThresholdFilter.value", 5L);
 		LocalCluster cluster = new LocalCluster();
 		cluster.submitTopology("cdc", conf, stormTopology);
 
