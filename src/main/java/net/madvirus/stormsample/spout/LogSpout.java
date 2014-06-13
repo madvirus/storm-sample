@@ -16,13 +16,13 @@ public class LogSpout implements ITridentSpout<Long> {
 
 	@Override
 	public BatchCoordinator<Long> getCoordinator(String txStateId, Map conf, TopologyContext context) {
-		LOG.info("LogSpout.getCoordinator({}, conf, context", txStateId);
+		LOG.info("LogSpout.getCoordinator({}, conf, context)", txStateId);
 		return new LogBatchCoordinator();
 	}
 
 	@Override
 	public Emitter<Long> getEmitter(String txStateId, Map conf, TopologyContext context) {
-		LOG.info("LogSpout.getEmitter({}, conf, context", txStateId);
+		LOG.info("LogSpout.getEmitter({}, conf, context)", txStateId);
 		return new LogEmitter();
 	}
 
