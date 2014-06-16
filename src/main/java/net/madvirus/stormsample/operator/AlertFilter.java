@@ -31,7 +31,7 @@ public class AlertFilter extends BaseOperation implements Filter {
 		LOG.info("AlertFilter.isKeep({})/{}", tuple, partitionIndex);
 		String groupKey = tuple.getStringByField("productId:time");
 		if (!aleadyNotiKey.containsKey(groupKey)) {
-			System.err.println("!!!!!!! " + tuple);
+			LOG.error("!!!!!!! " + tuple);
 			aleadyNotiKey.put(groupKey, Boolean.TRUE);
 		}
 		return false;
