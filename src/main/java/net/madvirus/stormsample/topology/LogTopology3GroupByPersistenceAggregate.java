@@ -13,7 +13,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.tuple.Fields;
 
-public class LogTopology3 {
+public class LogTopology3GroupByPersistenceAggregate {
 
 	public static void main(String[] args) {
 		TridentTopology topology = new TridentTopology();

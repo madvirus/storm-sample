@@ -14,7 +14,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.tuple.Fields;
 
-public class LogTopology {
+public class LogTopology1Start {
 
 	public static void main(String[] args) {
 		TridentTopology topology = new TridentTopology();
