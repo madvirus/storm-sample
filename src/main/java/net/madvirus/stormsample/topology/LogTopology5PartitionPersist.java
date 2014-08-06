@@ -26,79 +26,84 @@ import backtype.storm.tuple.Fields;
 
 public class LogTopology5PartitionPersist {
 
-	public static class DistinctState implements State {
+    public static class DistinctState implements State {
 
-		private Map<String, ShopLog> map = new ConcurrentHashMap<>();
+        private Map<String, ShopLog> map = new ConcurrentHashMap<>();
 
-		@Override
-		public void beginCommit(Long txid) {
-		}
+        private Map<String, ShopLog> temp = new ConcurrentHashMap<>();
 
-		@Override
-		public void commit(Long txid) {
-		}
+        @Override
+        public void beginCommit(Long txid) {
+            temp.clear();
+        }
 
-		public boolean hasKey(String key) {
-			return map.containsKey(key);
-		}
+        @Override
+        public void commit(Long txid) {
+            for (Map.Entry<String, ShopLog> entry : temp.entrySet())
+                map.put(entry.getKey(), entry.getValue());
+        }
 
-		public void put(String key, ShopLog value) {
-			map.put(key, value);
-		}
+        public boolean hasKey(String key) {
+            return map.containsKey(key) || temp.containsKey(key);
+        }
 
-	}
+        public void put(String key, ShopLog value) {
+            temp.put(key, value);
+        }
 
-	public static class DistinctStateFactory implements StateFactory {
-		private static final long serialVersionUID = 1L;
+    }
 
-		@SuppressWarnings("rawtypes")
-		@Override
-		public State makeState(Map conf, IMetricsContext metrics, int partitionIndex, int numPartitions) {
-			return new DistinctState();
-		}
-	}
+    public static class DistinctStateFactory implements StateFactory {
+        private static final long serialVersionUID = 1L;
 
-	@SuppressWarnings("serial")
-	public static class DistinctStateUpdater extends BaseStateUpdater<DistinctState> {
+        @SuppressWarnings("rawtypes")
+        @Override
+        public State makeState(Map conf, IMetricsContext metrics, int partitionIndex, int numPartitions) {
+            return new DistinctState();
+        }
+    }
 
-		@Override
-		public void updateState(DistinctState state, List<TridentTuple> tuples, TridentCollector collector) {
-			List<TridentTuple> newEntries = new ArrayList<>();
-			for (TridentTuple t : tuples) {
-				String key = t.getStringByField("productId:time");
-				if (!state.hasKey(key)) {
-					state.put(key, (ShopLog) t.getValueByField("shopLog"));
-					newEntries.add(t);
-				}
-			}
-			for (TridentTuple t : newEntries) {
-				collector.emit(Arrays.asList(t.getValueByField("shopLog"), t.getStringByField("productId:time")));
-			}
-		}
-	}
+    @SuppressWarnings("serial")
+    public static class DistinctStateUpdater extends BaseStateUpdater<DistinctState> {
 
-	public static void main(String[] args) {
-		TridentTopology topology = new TridentTopology();
-		topology.newStream("log", new LogSpout())
-				.each(new Fields("logString"), new OrderLogFilter())
-				.each(new Fields("logString"), new LogParser(), new Fields("shopLog"))
-				.each(new Fields("shopLog"), new AddGroupingValueFunction(), new Fields("productId:time"))
-				.partitionPersist(new DistinctStateFactory(), new Fields("shopLog", "productId:time"), new DistinctStateUpdater(),
-						new Fields("shopLog", "productId:time"))
-				.newValuesStream()
-				.each(new Fields("shopLog", "productId:time"), Util.printer());
+        @Override
+        public void updateState(DistinctState state, List<TridentTuple> tuples, TridentCollector collector) {
+            List<TridentTuple> newEntries = new ArrayList<>();
+            for (TridentTuple t : tuples) {
+                String key = t.getStringByField("productId:time");
+                if (!state.hasKey(key)) {
+                    state.put(key, (ShopLog) t.getValueByField("shopLog"));
+                    newEntries.add(t);
+                }
+            }
+            for (TridentTuple t : newEntries) {
+                collector.emit(Arrays.asList(t.getValueByField("shopLog"), t.getStringByField("productId:time")));
+            }
+        }
+    }
 
-		StormTopology stormTopology = topology.build();
+    public static void main(String[] args) {
+        TridentTopology topology = new TridentTopology();
+        topology.newStream("log", new LogSpout())
+                .each(new Fields("logString"), new OrderLogFilter())
+                .each(new Fields("logString"), new LogParser(), new Fields("shopLog"))
+                .each(new Fields("shopLog"), new AddGroupingValueFunction(), new Fields("productId:time"))
+                .partitionPersist(new DistinctStateFactory(), new Fields("shopLog", "productId:time"), new DistinctStateUpdater(),
+                        new Fields("shopLog", "productId:time"))
+                .newValuesStream()
+                .each(new Fields("shopLog", "productId:time"), Util.printer());
 
-		Config conf = new Config();
-		LocalCluster cluster = new LocalCluster();
-		cluster.submitTopology("cdc", conf, stormTopology);
+        StormTopology stormTopology = topology.build();
 
-		try {
-			Thread.sleep(60000);
-		} catch (InterruptedException e) {
-		}
-		cluster.shutdown();
-	}
+        Config conf = new Config();
+        LocalCluster cluster = new LocalCluster();
+        cluster.submitTopology("cdc", conf, stormTopology);
+
+        try {
+            Thread.sleep(60000);
+        } catch (InterruptedException e) {
+        }
+        cluster.shutdown();
+    }
 
 }
